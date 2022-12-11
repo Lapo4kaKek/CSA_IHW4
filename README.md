@@ -95,7 +95,7 @@ g++ -Wall -o main main.cpp
 Ввод с помощью файла и вывод на linux:
 ![](https://github.com/Lapo4kaKek/CSA_IHW4/blob/main/staic/first.jpeg)
 
-В папке input лежат дополнительные варианты ввода и вывода.
+В [input](https://github.com/Lapo4kaKek/CSA_IHW4/tree/main/input) лежат дополнительные варианты ввода, в [output](https://github.com/Lapo4kaKek/CSA_IHW4/tree/main/output) соответсвующие выводы.
 
 
 Критерии на оценку 8:
