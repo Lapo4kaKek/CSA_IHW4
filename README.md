@@ -63,6 +63,7 @@ name2
 
 Программа компилируется и запускается на Macos, Windows, Linux. На Linux можно скомпилировать например так:
 ```
+g++ prog.cpp -o prog -fsanitize=thread -lpthread
 g++ -Wall -o main main.cpp
 ```
 ![](https://github.com/Lapo4kaKek/CSA_IHW4/blob/main/staic/compil.jpeg)
