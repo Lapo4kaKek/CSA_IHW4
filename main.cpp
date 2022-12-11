@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <mutex>
 // класс описывающий человека
 #include "People.cpp"
 #include "function.cpp"
@@ -13,6 +14,7 @@
 
 std::map<std::string, int> library;
 std::vector<People> users;
+std::timed_mutex mutex;
 void returnBook() {
     // ставим таймаут в 2 секунды
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -21,12 +23,13 @@ void returnBook() {
         --i;
         int number = rand() % users.size();
         // если есть долги, то возвращаем
-        if (users[number].arrears()) {
+        if (users[number].arrears() && mutex.try_lock_for(std::chrono::milliseconds (100))) {
             std::string title = users[number].returnBook();
             library[title] += 1;
             std::cout << users[number].getName() << " вернул " << title << " обратно\n";
             // выводим в файл текущую информацию
             output(users[number].getName() + " вернул " + title + " обратно\n");
+            mutex.unlock();
         }
         // таймаут в 3 секунды
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -39,18 +42,17 @@ void work(int index) {
     if (users[index].waiting()) {
         // если он ждет книгу, то
         std::string title = users[index].takeWaiting();
-        if (library[title] > 0) {
+        if (library[title] > 0 && mutex.try_lock_for(std::chrono::milliseconds (100))) {
             library[title] -= 1;
             users[index].addBook(title);
             std::cout << users[index].getName() << " дождался книгу: " << title << "\n";
             output(users[index].getName() + " дождался книгу: " + title + "\n");
             // ставим рандомный таймаут (на промежутке от 0 до 2000)
             std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 2000));
+            mutex.unlock();
         } else {
             std::cout << users[index].getName() << " продолжает ждать книгу " << title << "\n";
             output(users[index].getName() + " продолжает ждать книгу " + title + "\n");
-            // ставим таймаут
-            std::this_thread::sleep_for(std::chrono::milliseconds(2050));
         }
     } else {
         // количество книг которое берет чел
@@ -59,7 +61,7 @@ void work(int index) {
             std::map<std::string, int>::iterator  iter = library.begin();
             // двигаем итератор map на рандомное количество позиций (идейно аналогично с iter += rand() % ...
             std::advance(iter, rand() % library.size());
-            if (iter->second > 0) {
+            if (iter->second > 0 && mutex.try_lock()) {
                 iter->second -= 1;
                 users[index].addBook(iter->first);
                 std::cout << users[index].getName() << " берет книгу: " << iter->first << "\n";
@@ -67,6 +69,7 @@ void work(int index) {
                 output(users[index].getName() + " берет книгу: " + iter->first + "\n");
                 // ставим таймаут на 1.7 секунды
                 std::this_thread::sleep_for(std::chrono::milliseconds(1600));
+                mutex.unlock();
             } else { // если конкретной книги нет, то добавляем в лист ожидания
                 std::string title = iter->first;
                 users[index].addWaiting(title);
