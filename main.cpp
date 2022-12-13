@@ -11,6 +11,7 @@
 #include "output.cpp"
 // многопоточность
 #include "thread"
+#include <pthread.h>
 
 std::map<std::string, int> library;
 std::vector<People> users;
